@@ -17,54 +17,86 @@ enum {
     OP_END, OP_INC, OP_DEC, OP_ADD, OP_SUB, OP_OUT, OP_IN, OP_JMP, OP_RET
 };
 
-typedef struct {
+/// An instruction containing an operator and an operand
+typedef struct instruction_t {
     unsigned short operator;
     unsigned short operand;
 } instruction_t;
 
 // Helper function
 
-/// Helper function that splits a str by delimiters and returns a c-string array and the count of strings splitted.
+/// Helper function that splits a str by delimiters and returns a c-string array and the count of strings splitted
+/// @param str The string to split
+/// @param at The delimiters to split at
+/// @param count The count of substrings
+/// @return An array of c-strings that contains the substrings
 char **split(const char *const str, const char *const at, int *count);
 
 // "Compiling" the file to instructions
 
+/// The instructions of the brainfuck program
 static instruction_t program[PROGRAM_SIZE];
+
+/// The stack that is used to keep track of jumps during compilation
 static unsigned short stack[STACK_SIZE];
+
+/// The stack pointer
 static unsigned int esp = 0;
 
 /// "Compiles" the brainfuck program in fp to the intermediate representation
+/// @param fp The file to read
+/// @return Whether or not the compilation succeeded
 bool compile(FILE *fp);
 
 // bfdb vars
 
+/// Whether or not bfdb should continue running
 static bool run = true;
+
+/// Whether or not a brainfuck program has been loaded
 static bool loaded = false;
 
 // Running brainfuck instance
 
+/// Whether or not brainfuck is currently running
 static bool bf_running = false;
+
+/// The cells
 static unsigned short bf_data[DATA_SIZE];
+
+/// The program counter
 static unsigned short bf_pc = 0;
+
+/// The cell pointer
 static unsigned int bf_ptr = 0;
 
 // Debugger actions
 
 /// Parses the command given in the cli
+/// @param cmd The command to parse
 void parse_command(const char *cmd);
 
 /// Load a brainfuck program from a file
+/// @param file_name The name of the file
 void dbg_load(const char *const file_name);
+
 /// Start execution of the loaded brainfuck program
 void dbg_run();
+
 /// Step in execution
 void dbg_next();
+
 /// Print the cell at the given index
+/// @param index The index of the cell to print
 void dbg_print(int index);
+
 /// Print the operator at the current program counter
 void dbg_print_op();
 
 /// The programs entry point
+/// @param argc The argument count
+/// @param argv A c-string array of the arguments
+/// @returns The exit code
 int main(int argc, char **argv) {
     if (argc > 1) {
         dbg_load(argv[1]);
@@ -83,6 +115,8 @@ int main(int argc, char **argv) {
 
         parse_command(buf);
     }
+
+    return EXIT_SUCCESS;
 }
 
 char **split(const char *const str, const char *const at, int *count) {
