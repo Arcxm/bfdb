@@ -307,7 +307,7 @@ void dbg_next() {
 
 void dbg_print(int index) {
     if (index < 0 || index >= DATA_SIZE) {
-        fprintf(stdout, "%d: Not in range [0..%d]\n", index, DATA_SIZE);
+        fprintf(stdout, "%d: Not in range [0..%d).\n", index, DATA_SIZE);
     } else {
         int c = bf_data[index];
         if (isprint(c)) {
