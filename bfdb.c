@@ -278,14 +278,14 @@ void parse_command(const char *cmd) {
     
     int count = 0;
     char **split_cmd = split(cmd, " ", &count);
-    // TODO: Add file command and print help on unknown command
+    // TODO: Print help on unknown command
     if (split_cmd && count > 0) {
         if (count == 1) {
             if (strcmp(split_cmd[0], "help") == 0 || split_cmd[0][0] == 'h') {
                 fprintf(stdout, "List of commands:\n\n");
                 fprintf(stdout, "(h)elp -- Print this help.\n");
                 fprintf(stdout, "(q)uit -- Exit debugger.\n\n");
-                fprintf(stdout, "(f)ile [filename] -- Use file\n");
+                fprintf(stdout, "(f)ile <filename> -- Use file.\n");
                 fprintf(stdout, "(r)un -- Start execution.\n");
                 fprintf(stdout, "(n)ext -- Step one instruction.\n");
                 fprintf(stdout, "(p)rint <index> -- Print cell.\n");

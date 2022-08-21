@@ -19,7 +19,7 @@ List of commands:
 (h)elp -- Print this help.
 (q)uit -- Exit debugger.
 
-(f)ile [filename] -- Use file
+(f)ile <filename> -- Use file.
 (r)un -- Start execution.
 (n)ext -- Step one instruction.
 (p)rint <index> -- Print cell.
