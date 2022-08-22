@@ -86,6 +86,9 @@ void dbg_run();
 /// Step in execution
 void dbg_next();
 
+/// Prints the cell pointer
+void dbg_print_cellptr();
+
 /// Print the cell at the given index
 /// @param index The index of the cell to print
 void dbg_print(int index);
@@ -223,6 +226,7 @@ void parse_command(const char *cmd) {
                 fprintf(stdout, "(f)ile <filename> -- Use file.\n");
                 fprintf(stdout, "(r)un -- Start execution.\n");
                 fprintf(stdout, "(n)ext -- Step one instruction.\n");
+                fprintf(stdout, "(c)ellptr -- Prints the cell pointer.\n");
                 fprintf(stdout, "(p)rint <index> -- Print cell.\n");
             } else if (strcmp(split_cmd[0], "run") == 0 || split_cmd[0][0] == 'r') {
                 dbg_run();
@@ -239,6 +243,12 @@ void parse_command(const char *cmd) {
             } else if (strcmp(split_cmd[0], "next") == 0 || split_cmd[0][0] == 'n') {
                 if (bf_running) {
                     dbg_next();
+                } else {
+                    fprintf(stdout, "The program is not being run.\n");
+                }
+            } else if (strcmp(split_cmd[0], "cellptr") == 0 || split_cmd[0][0] == 'c') {
+                if (bf_running) {
+                    dbg_print_cellptr();
                 } else {
                     fprintf(stdout, "The program is not being run.\n");
                 }
@@ -337,6 +347,10 @@ void dbg_next() {
 
         bf_pc++;
     }
+}
+
+void dbg_print_cellptr() {
+    fprintf(stdout, "$ptr: %d\n", bf_ptr);
 }
 
 void dbg_print(int index) {
