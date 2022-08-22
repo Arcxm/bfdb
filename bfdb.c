@@ -359,9 +359,9 @@ void dbg_print(int index) {
     } else {
         int c = bf_data[index];
         if (isprint(c)) {
-            fprintf(stdout, "Cell %d: %d ('%c').\n", index, bf_data[index], c);
+            fprintf(stdout, "$[%d]: %d ('%c').\n", index, bf_data[index], c);
         } else {
-            fprintf(stdout, "Cell %d: %d.\n", index, bf_data[index]);
+            fprintf(stdout, "$[%d]: %d.\n", index, bf_data[index]);
         }
     }
 }
