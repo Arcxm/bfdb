@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,8 @@
 #define DATA_SIZE 65535
 
 // Intermediate representation
+
+const char* COMMANDS[] = { "EOF", ">", "<", "+", "-", ".", ",", "[", "]" };
 
 enum {
     OP_END, OP_INC, OP_DEC, OP_ADD, OP_SUB, OP_OUT, OP_IN, OP_JMP, OP_RET
@@ -79,6 +82,10 @@ void parse_command(const char *cmd);
 /// Load a brainfuck program from a file
 /// @param file_name The name of the file
 void dbg_load(const char *const file_name);
+
+/// Prints a formatted error as well as runtime information to stderr and stops execution
+/// @param fmt The format
+void dbg_error(const char *fmt, ...);
 
 /// Start execution of the loaded brainfuck program
 void dbg_run();
@@ -297,6 +304,21 @@ void dbg_load(const char *const file_name) {
     }
 }
 
+void dbg_error(const char *fmt, ...) {
+    fprintf(stderr, "err: ");
+
+    va_list vl;
+    va_start(vl, fmt);
+    vfprintf(stderr, fmt, vl);
+    va_end(vl);
+
+    unsigned short operator = program[bf_pc].operator;
+    fprintf(stderr, "At instruction %d ('%s'). $[$ptr: %d]: %d.\n", bf_pc + 1, COMMANDS[operator], bf_ptr, bf_data[bf_ptr]);
+    
+    fprintf(stdout, "Brainfuck exited with error.\n");
+    bf_running = false;
+}
+
 void dbg_run() {
     if (loaded) {
         memset(bf_data, 0, sizeof(unsigned short) * DATA_SIZE);
@@ -311,15 +333,23 @@ void dbg_run() {
 
 void dbg_next() {
     if (program[bf_pc].operator == OP_END) {
-        fprintf(stdout, "Brainfuck exited.\n");
+        fprintf(stdout, "Brainfuck exited normally.\n");
         bf_running = false;
     } else {
         switch (program[bf_pc].operator) {
             case OP_INC:
-                bf_ptr++;
+                if (bf_ptr + 1 < DATA_SIZE) {
+                    bf_ptr++;
+                } else {
+                    dbg_error("trying to increment the cell pointer out of range (%d)\n", DATA_SIZE);
+                }
                 break;
             case OP_DEC:
-                bf_ptr--;
+                if (bf_ptr > 0) {
+                    bf_ptr--;
+                } else {
+                    dbg_error("trying to decrement the cell pointer below 0\n");
+                }
                 break;
             case OP_ADD:
                 bf_data[bf_ptr]++;
