@@ -70,7 +70,7 @@ static unsigned short bf_data[DATA_SIZE];
 /// The program counter
 static unsigned short bf_pc = 0;
 
-/// The cell pointer
+/// The data pointer
 static unsigned int bf_ptr = 0;
 
 // Debugger actions
@@ -93,8 +93,8 @@ void dbg_run();
 /// Step in execution
 void dbg_next();
 
-/// Prints the cell pointer
-void dbg_print_cellptr();
+/// Prints the data pointer
+void dbg_print_dataptr();
 
 /// Print the cell at the given index
 /// @param index The index of the cell to print
@@ -233,7 +233,7 @@ void parse_command(const char *cmd) {
                 fprintf(stdout, "(f)ile <filename> -- Use file.\n");
                 fprintf(stdout, "(r)un -- Start execution.\n");
                 fprintf(stdout, "(n)ext -- Step one instruction.\n");
-                fprintf(stdout, "(c)ellptr -- Prints the cell pointer.\n");
+                fprintf(stdout, "(d)ataptr -- Prints the data pointer.\n");
                 fprintf(stdout, "(p)rint <index> -- Print cell.\n");
             } else if (strcmp(split_cmd[0], "run") == 0 || split_cmd[0][0] == 'r') {
                 dbg_run();
@@ -253,9 +253,9 @@ void parse_command(const char *cmd) {
                 } else {
                     fprintf(stdout, "The program is not being run.\n");
                 }
-            } else if (strcmp(split_cmd[0], "cellptr") == 0 || split_cmd[0][0] == 'c') {
+            } else if (strcmp(split_cmd[0], "dataptr") == 0 || split_cmd[0][0] == 'd') {
                 if (bf_running) {
-                    dbg_print_cellptr();
+                    dbg_print_dataptr();
                 } else {
                     fprintf(stdout, "The program is not being run.\n");
                 }
@@ -314,7 +314,7 @@ void dbg_error(const char *fmt, ...) {
 
     unsigned short operator = program[bf_pc].operator;
     fprintf(stderr, "At instruction %d ('%s'). $[$ptr: %d]: %d.\n", bf_pc + 1, COMMANDS[operator], bf_ptr, bf_data[bf_ptr]);
-    
+
     fprintf(stdout, "Brainfuck exited with error.\n");
     bf_running = false;
 }
@@ -341,14 +341,14 @@ void dbg_next() {
                 if (bf_ptr + 1 < DATA_SIZE) {
                     bf_ptr++;
                 } else {
-                    dbg_error("trying to increment the cell pointer out of range (%d)\n", DATA_SIZE);
+                    dbg_error("trying to increment the data pointer out of range (%d)\n", DATA_SIZE);
                 }
                 break;
             case OP_DEC:
                 if (bf_ptr > 0) {
                     bf_ptr--;
                 } else {
-                    dbg_error("trying to decrement the cell pointer below 0\n");
+                    dbg_error("trying to decrement the data pointer below 0\n");
                 }
                 break;
             case OP_ADD:
@@ -379,7 +379,7 @@ void dbg_next() {
     }
 }
 
-void dbg_print_cellptr() {
+void dbg_print_dataptr() {
     fprintf(stdout, "$ptr: %d\n", bf_ptr);
 }
 
