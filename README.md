@@ -22,6 +22,6 @@ List of commands:
 (f)ile <filename> -- Use file.
 (r)un -- Start execution.
 (n)ext -- Step one instruction.
-(c)ellptr -- Prints the cell pointer.
+(d)ataptr -- Prints the data pointer.
 (p)rint <index> -- Print cell.
 ```
