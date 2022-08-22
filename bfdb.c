@@ -180,7 +180,7 @@ bool compile(FILE *fp) {
                 break;
             case ']':
                 if (esp == 0) {
-                    return true;
+                    return false;
                 }
                 jmp_pc = stack[--esp];
                 program[pc].operator = OP_RET;
