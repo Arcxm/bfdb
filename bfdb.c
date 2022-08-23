@@ -59,19 +59,22 @@ static bool run = true;
 /// Whether or not a brainfuck program has been loaded
 static bool loaded = false;
 
-// Running brainfuck instance
+/// Running brainfuck instance
+typedef struct runtime_t {
+    /// Whether or not brainfuck is currently running
+    bool running;
 
-/// Whether or not brainfuck is currently running
-static bool bf_running = false;
+    /// The cells
+    unsigned short data[DATA_SIZE];
 
-/// The cells
-static unsigned short bf_data[DATA_SIZE];
+    /// The program counter
+    unsigned short pc;
 
-/// The program counter
-static unsigned short bf_pc = 0;
+    /// The data pointer
+    unsigned int ptr;
+} runtime_t;
 
-/// The data pointer
-static unsigned int bf_ptr = 0;
+runtime_t runtime = { .running = false, .pc = 0, .ptr = 0 };
 
 // Debugger actions
 
@@ -113,7 +116,7 @@ int main(int argc, char **argv) {
     }
 
     while (run) {
-        if (bf_running) {
+        if (runtime.running) {
             dbg_print_op();
         }
 
@@ -248,13 +251,13 @@ void parse_command(const char *cmd) {
 
                 run = false;
             } else if (strcmp(split_cmd[0], "next") == 0 || split_cmd[0][0] == 'n') {
-                if (bf_running) {
+                if (runtime.running) {
                     dbg_next();
                 } else {
                     fprintf(stdout, "The program is not being run.\n");
                 }
             } else if (strcmp(split_cmd[0], "dataptr") == 0 || split_cmd[0][0] == 'd') {
-                if (bf_running) {
+                if (runtime.running) {
                     dbg_print_dataptr();
                 } else {
                     fprintf(stdout, "The program is not being run.\n");
@@ -264,7 +267,7 @@ void parse_command(const char *cmd) {
             if (strcmp(split_cmd[0], "file") == 0 || split_cmd[0][0] == 'f') {
                 dbg_load(split_cmd[1]);
             } else if (strcmp(split_cmd[0], "print") == 0 || split_cmd[0][0] == 'p') {
-                if (bf_running) {
+                if (runtime.running) {
                     int index = (int) strtol(split_cmd[1], (char**) NULL, 10);
                     dbg_print(index);
                 } else {
@@ -285,7 +288,7 @@ void parse_command(const char *cmd) {
 
 void dbg_load(const char *const file_name) {
     // TODO: Inform user if another file is already being debugged and ask if he wants to continue
-    bf_running = false;
+    runtime.running = false;
 
     FILE *fp = fopen(file_name, "r");
 
@@ -312,92 +315,92 @@ void dbg_error(const char *fmt, ...) {
     vfprintf(stderr, fmt, vl);
     va_end(vl);
 
-    unsigned short operator = program[bf_pc].operator;
-    fprintf(stderr, "At instruction %d ('%s'). $[$ptr: %d]: %d.\n", bf_pc + 1, COMMANDS[operator], bf_ptr, bf_data[bf_ptr]);
+    unsigned short operator = program[runtime.pc].operator;
+    fprintf(stderr, "At instruction %d ('%s'). $[$ptr: %d]: %d.\n", runtime.pc + 1, COMMANDS[operator], runtime.ptr, runtime.data[runtime.ptr]);
 
     fprintf(stdout, "Brainfuck exited with error.\n");
-    bf_running = false;
+    runtime.running = false;
 }
 
 void dbg_run() {
     if (loaded) {
-        memset(bf_data, 0, sizeof(unsigned short) * DATA_SIZE);
+        memset(runtime.data, 0, sizeof(unsigned short) * DATA_SIZE);
 
-        bf_pc = 0;
-        bf_ptr = 0;
-        bf_running = true;
+        runtime.pc = 0;
+        runtime.ptr = 0;
+        runtime.running = true;
     } else {
         fprintf(stdout, "No brainfuck file specified, use 'file'.\n");
     }
 }
 
 void dbg_next() {
-    if (program[bf_pc].operator == OP_END) {
+    if (program[runtime.pc].operator == OP_END) {
         fprintf(stdout, "Brainfuck exited normally.\n");
-        bf_running = false;
+        runtime.running = false;
     } else {
-        switch (program[bf_pc].operator) {
+        switch (program[runtime.pc].operator) {
             case OP_INC:
-                if (bf_ptr + 1 < DATA_SIZE) {
-                    bf_ptr++;
+                if (runtime.ptr + 1 < DATA_SIZE) {
+                    runtime.ptr++;
                 } else {
                     dbg_error("trying to increment the data pointer out of range (%d)\n", DATA_SIZE);
                 }
                 break;
             case OP_DEC:
-                if (bf_ptr > 0) {
-                    bf_ptr--;
+                if (runtime.ptr > 0) {
+                    runtime.ptr--;
                 } else {
                     dbg_error("trying to decrement the data pointer below 0\n");
                 }
                 break;
             case OP_ADD:
-                bf_data[bf_ptr]++;
+                runtime.data[runtime.ptr]++;
                 break;
             case OP_SUB:
-                bf_data[bf_ptr]--;
+                runtime.data[runtime.ptr]--;
                 break;
             case OP_OUT:
-                putchar(bf_data[bf_ptr]);
+                putchar(runtime.data[runtime.ptr]);
                 break;
             case OP_IN:
-                bf_data[bf_ptr] = (unsigned int) getchar();
+                runtime.data[runtime.ptr] = (unsigned int) getchar();
                 break;
             case OP_JMP:
-                if (!bf_data[bf_ptr]) {
-                    bf_pc = program[bf_pc].operand;
+                if (!runtime.data[runtime.ptr]) {
+                    runtime.pc = program[runtime.pc].operand;
                 }
                 break;
             case OP_RET:
-                if (bf_data[bf_ptr]) {
-                    bf_pc = program[bf_pc].operand;
+                if (runtime.data[runtime.ptr]) {
+                    runtime.pc = program[runtime.pc].operand;
                 }
                 break;
             }
 
-        bf_pc++;
+        runtime.pc++;
     }
 }
 
 void dbg_print_dataptr() {
-    fprintf(stdout, "$ptr: %d\n", bf_ptr);
+    fprintf(stdout, "$ptr: %d\n", runtime.ptr);
 }
 
 void dbg_print(int index) {
     if (index < 0 || index >= DATA_SIZE) {
         fprintf(stdout, "%d: Not in range [0..%d).\n", index, DATA_SIZE);
     } else {
-        int c = bf_data[index];
+        int c = runtime.data[index];
         if (isprint(c)) {
-            fprintf(stdout, "$[%d]: %d ('%c').\n", index, bf_data[index], c);
+            fprintf(stdout, "$[%d]: %d ('%c').\n", index, runtime.data[index], c);
         } else {
-            fprintf(stdout, "$[%d]: %d.\n", index, bf_data[index]);
+            fprintf(stdout, "$[%d]: %d.\n", index, runtime.data[index]);
         }
     }
 }
 
 void dbg_print_op() {
-    switch (program[bf_pc].operator) {
+    switch (program[runtime.pc].operator) {
         case OP_INC:
             fputc('>', stdout);
             break;
