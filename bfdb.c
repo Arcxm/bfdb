@@ -37,19 +37,24 @@ char **split(const char *const str, const char *const at, int *count);
 
 // "Compiling" the file to instructions
 
-/// The instructions of the brainfuck program
-static instruction_t program[PROGRAM_SIZE];
+typedef struct program_t {
+    /// The instructions of the brainfuck program
+    instruction_t instructions[PROGRAM_SIZE];
 
-/// The stack that is used to keep track of jumps during compilation
-static unsigned short stack[STACK_SIZE];
+    /// The stack that is used to keep track of jumps during compilation
+    unsigned short stack[STACK_SIZE];
 
-/// The stack pointer
-static unsigned int esp = 0;
+    /// The stack pointer
+    unsigned int esp;
+} program_t;
+
+program_t program = { .esp = 0 };
 
 /// "Compiles" the brainfuck program in fp to the intermediate representation
 /// @param fp The file to read
+/// @param prog The program structure to write the program to
 /// @return Whether or not the compilation succeeded
-bool compile(FILE *fp);
+bool compile(FILE *fp, program_t *prog);
 
 // bfdb vars
 
@@ -159,7 +164,12 @@ char **split(const char *const str, const char *const at, int *count) {
 	}
 }
 
-bool compile(FILE *fp) {
+bool compile(FILE *fp, program_t *prog) {
+    // Make sure that a program structure is provided
+    if (!prog) {
+        return false;
+    }
+
     unsigned short pc = 0;
     unsigned short jmp_pc;
 
@@ -167,38 +177,38 @@ bool compile(FILE *fp) {
     while ((c = getc(fp)) != EOF && pc < PROGRAM_SIZE) {
         switch (c) {
             case '>':
-                program[pc].operator = OP_INC;
+                prog->instructions[pc].operator = OP_INC;
                 break;
             case '<':
-                program[pc].operator = OP_DEC;
+                prog->instructions[pc].operator = OP_DEC;
                 break;
             case '+':
-                program[pc].operator = OP_ADD;
+                prog->instructions[pc].operator = OP_ADD;
                 break;
             case '-':
-                program[pc].operator = OP_SUB;
+                prog->instructions[pc].operator = OP_SUB;
                 break;
             case '.':
-                program[pc].operator = OP_OUT;
+                prog->instructions[pc].operator = OP_OUT;
                 break;
             case ',':
-                program[pc].operator = OP_IN;
+                prog->instructions[pc].operator = OP_IN;
                 break;
             case '[':
-                program[pc].operator = OP_JMP;
-                if (esp == STACK_SIZE) {
+                prog->instructions[pc].operator = OP_JMP;
+                if (prog->esp == STACK_SIZE) {
                     return false;
                 }
-                stack[esp++] = pc;
+                prog->stack[prog->esp++] = pc;
                 break;
             case ']':
-                if (esp == 0) {
+                if (prog->esp == 0) {
                     return false;
                 }
-                jmp_pc = stack[--esp];
-                program[pc].operator = OP_RET;
-                program[pc].operator = jmp_pc;
-                program[jmp_pc].operator = pc;
+                jmp_pc = prog->stack[--prog->esp];
+                prog->instructions[pc].operator = OP_RET;
+                prog->instructions[pc].operator = jmp_pc;
+                prog->instructions[jmp_pc].operator = pc;
                 break;
             default:
                 pc--;
@@ -208,11 +218,11 @@ bool compile(FILE *fp) {
         pc++;
     }
 
-    if (esp != 0 || pc == PROGRAM_SIZE) {
+    if (prog->esp != 0 || pc == PROGRAM_SIZE) {
         return false;
     }
     
-    program[pc].operator = OP_END;
+    prog->instructions[pc].operator = OP_END;
 
     return true;
 }
@@ -295,7 +305,7 @@ void dbg_load(const char *const file_name) {
     if (fp) {
         fprintf(stdout, "Reading %s...\n", file_name);
 
-        loaded = compile(fp);
+        loaded = compile(fp, &program);
 
         if (!loaded) {
             fprintf(stdout, "Could not read from %s.\n", file_name);
@@ -315,7 +325,7 @@ void dbg_error(const char *fmt, ...) {
     vfprintf(stderr, fmt, vl);
     va_end(vl);
 
-    unsigned short operator = program[runtime.pc].operator;
+    unsigned short operator = program.instructions[runtime.pc].operator;
     fprintf(stderr, "At instruction %d ('%s'). $[$ptr: %d]: %d.\n", runtime.pc + 1, COMMANDS[operator], runtime.ptr, runtime.data[runtime.ptr]);
 
     fprintf(stdout, "Brainfuck exited with error.\n");
@@ -335,11 +345,11 @@ void dbg_run() {
 }
 
 void dbg_next() {
-    if (program[runtime.pc].operator == OP_END) {
+    if (program.instructions[runtime.pc].operator == OP_END) {
         fprintf(stdout, "Brainfuck exited normally.\n");
         runtime.running = false;
     } else {
-        switch (program[runtime.pc].operator) {
+        switch (program.instructions[runtime.pc].operator) {
             case OP_INC:
                 if (runtime.ptr + 1 < DATA_SIZE) {
                     runtime.ptr++;
@@ -368,12 +378,12 @@ void dbg_next() {
                 break;
             case OP_JMP:
                 if (!runtime.data[runtime.ptr]) {
-                    runtime.pc = program[runtime.pc].operand;
+                    runtime.pc = program.instructions[runtime.pc].operand;
                 }
                 break;
             case OP_RET:
                 if (runtime.data[runtime.ptr]) {
-                    runtime.pc = program[runtime.pc].operand;
+                    runtime.pc = program.instructions[runtime.pc].operand;
                 }
                 break;
             }
@@ -400,7 +410,7 @@ void dbg_print(int index) {
 }
 
 void dbg_print_op() {
-    switch (program[runtime.pc].operator) {
+    switch (program.instructions[runtime.pc].operator) {
         case OP_INC:
             fputc('>', stdout);
             break;
