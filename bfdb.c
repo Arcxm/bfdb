@@ -98,6 +98,11 @@ void dbg_error(const char *fmt, ...);
 /// Start execution of the loaded brainfuck program
 void dbg_run();
 
+/// Interprets an instruction on the given runtime
+/// @param runtime The runtime to use
+/// @param instruction The instruction to interpret
+void dbg_interpret(runtime_t *runtime, instruction_t instruction);
+
 /// Step in execution
 void dbg_next();
 
@@ -344,52 +349,61 @@ void dbg_run() {
     }
 }
 
-void dbg_next() {
-    if (program.instructions[runtime.pc].operator == OP_END) {
+void dbg_interpret(runtime_t *runtime, instruction_t instruction) {
+    // Make sure that a runtime is provided
+    if (!runtime) {
+        return;
+    }
+
+    if (instruction.operator == OP_END) {
         fprintf(stdout, "Brainfuck exited normally.\n");
-        runtime.running = false;
+        runtime->running = false;
     } else {
-        switch (program.instructions[runtime.pc].operator) {
+        switch (instruction.operator) {
             case OP_INC:
-                if (runtime.ptr + 1 < DATA_SIZE) {
-                    runtime.ptr++;
+                if (runtime->ptr + 1 < DATA_SIZE) {
+                    runtime->ptr++;
                 } else {
                     dbg_error("trying to increment the data pointer out of range (%d)\n", DATA_SIZE);
                 }
                 break;
             case OP_DEC:
-                if (runtime.ptr > 0) {
-                    runtime.ptr--;
+                if (runtime->ptr > 0) {
+                    runtime->ptr--;
                 } else {
                     dbg_error("trying to decrement the data pointer below 0\n");
                 }
                 break;
             case OP_ADD:
-                runtime.data[runtime.ptr]++;
+                runtime->data[runtime->ptr]++;
                 break;
             case OP_SUB:
-                runtime.data[runtime.ptr]--;
+                runtime->data[runtime->ptr]--;
                 break;
             case OP_OUT:
-                putchar(runtime.data[runtime.ptr]);
+                putchar(runtime->data[runtime->ptr]);
                 break;
             case OP_IN:
-                runtime.data[runtime.ptr] = (unsigned int) getchar();
+                runtime->data[runtime->ptr] = (unsigned int) getchar();
                 break;
             case OP_JMP:
-                if (!runtime.data[runtime.ptr]) {
-                    runtime.pc = program.instructions[runtime.pc].operand;
+                if (!runtime->data[runtime->ptr]) {
+                    runtime->pc = instruction.operand;
                 }
                 break;
             case OP_RET:
-                if (runtime.data[runtime.ptr]) {
-                    runtime.pc = program.instructions[runtime.pc].operand;
+                if (runtime->data[runtime->ptr]) {
+                    runtime->pc = instruction.operand;
                 }
                 break;
             }
 
-        runtime.pc++;
+        runtime->pc++;
     }
+}
+
+void dbg_next() {
+    dbg_interpret(&runtime, program.instructions[runtime.pc]);
 }
 
 void dbg_print_dataptr() {
