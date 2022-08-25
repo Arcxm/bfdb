@@ -14,7 +14,7 @@
 
 // Intermediate representation
 
-const char* COMMANDS[] = { "EOF", ">", "<", "+", "-", ".", ",", "[", "]" };
+const char* INSTRUCTIONS[] = { "EOF", ">", "<", "+", "-", ".", ",", "[", "]" };
 
 enum {
     OP_END, OP_INC, OP_DEC, OP_ADD, OP_SUB, OP_OUT, OP_IN, OP_JMP, OP_RET
@@ -420,7 +420,7 @@ void dbg_error(const char *fmt, ...) {
     va_end(vl);
 
     unsigned short operator = program.instructions[runtime.pc].operator;
-    fprintf(stderr, "At instruction %d ('%s'). $[$ptr: %d]: %d.\n", runtime.pc + 1, COMMANDS[operator], runtime.ptr, runtime.data[runtime.ptr]);
+    fprintf(stderr, "At instruction %d ('%s'). $[$ptr: %d]: %d.\n", runtime.pc + 1, INSTRUCTIONS[operator], runtime.ptr, runtime.data[runtime.ptr]);
 
     fprintf(stdout, "Brainfuck exited with error.\n");
     runtime.running = false;
