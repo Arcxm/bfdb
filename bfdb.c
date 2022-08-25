@@ -81,11 +81,68 @@ typedef struct runtime_t {
 
 runtime_t runtime = { .running = false, .pc = 0, .ptr = 0 };
 
-// Debugger actions
+// Commands
+
+/// The handler of a command
+typedef void (*command_handler_t)(char*);
+
+/// A command
+typedef struct command_t {
+    /// The name of the command
+    const char *name;
+
+    /// The abbreviation that the user can use
+    const char abbr;
+
+    /// Short description
+    const char *desc;
+
+    /// The commands handler
+    command_handler_t handler;
+} command_t;
 
 /// Parses the command given in the cli
 /// @param cmd The command to parse
 void parse_command(const char *cmd);
+
+/// The help command, prints the available commands
+void cmd_help(char *unused);
+
+/// The quit command, exits the debugger
+void cmd_quit(char *unused);
+
+/// The file command, reads a file to debug
+/// @param file_name The name of the file
+void cmd_file(char *file_name);
+
+/// The run command, starts execution
+void cmd_run(char *unused);
+
+/// The next command, steps an instruction
+void cmd_next(char *unused);
+
+/// The dataptr command, prints the data pointer
+void cmd_dataptr(char *unused);
+
+/// The print command, prints a cell
+/// @param index The index of the cell to print
+void cmd_print(char *index);
+
+/// The commands
+command_t commands[] = {
+    { .name = "help",    .abbr = 'h', .desc = "Print this help",         .handler = &cmd_help },
+    { .name = "quit",    .abbr = 'q', .desc = "Exit debugger",           .handler = &cmd_quit },
+    { .name = "file",    .abbr = 'f', .desc = "Use file",                .handler = &cmd_file },
+    { .name = "run",     .abbr = 'r', .desc = "Start execution",         .handler = &cmd_run },
+    { .name = "next",    .abbr = 'n', .desc = "Step one instruction",    .handler = &cmd_next },
+    { .name = "dataptr", .abbr = 'd', .desc = "Prints the data pointer", .handler = &cmd_dataptr },
+    { .name = "print",   .abbr = 'p', .desc = "Print cell",              .handler = &cmd_print }
+};
+
+/// The count of available commands
+const int command_count = sizeof(commands) / sizeof(command_t);
+
+// Debugger actions
 
 /// Load a brainfuck program from a file
 /// @param file_name The name of the file
@@ -241,63 +298,95 @@ void parse_command(const char *cmd) {
     
     int count = 0;
     char **split_cmd = split(cmd, " ", &count);
+
     // TODO: Print help on unknown command
-    if (split_cmd && count > 0) {
-        if (count == 1) {
-            if (strcmp(split_cmd[0], "help") == 0 || split_cmd[0][0] == 'h') {
-                fprintf(stdout, "List of commands:\n\n");
-                fprintf(stdout, "(h)elp -- Print this help.\n");
-                fprintf(stdout, "(q)uit -- Exit debugger.\n\n");
-                fprintf(stdout, "(f)ile <filename> -- Use file.\n");
-                fprintf(stdout, "(r)un -- Start execution.\n");
-                fprintf(stdout, "(n)ext -- Step one instruction.\n");
-                fprintf(stdout, "(d)ataptr -- Prints the data pointer.\n");
-                fprintf(stdout, "(p)rint <index> -- Print cell.\n");
-            } else if (strcmp(split_cmd[0], "run") == 0 || split_cmd[0][0] == 'r') {
-                dbg_run();
-            } else if (strcmp(split_cmd[0], "quit") == 0 || split_cmd[0][0] == 'q') {
-                for (int i = 0; i < count; ++i) {
-                    if (split_cmd[i]) {
-                        free(split_cmd[i]);
-                    }
-                }
+    for (int i = 0; i < command_count; ++i) {
+        const command_t command = commands[i];
 
-                free(split_cmd);
+        if (strcmp(split_cmd[0], command.name) == 0 || split_cmd[0][0] == command.abbr) {
+            // Whether or not an argument was provided
+            char *arg = (count == 2) ? split_cmd[1] : NULL;
 
-                run = false;
-            } else if (strcmp(split_cmd[0], "next") == 0 || split_cmd[0][0] == 'n') {
-                if (runtime.running) {
-                    dbg_next();
-                } else {
-                    fprintf(stdout, "The program is not being run.\n");
-                }
-            } else if (strcmp(split_cmd[0], "dataptr") == 0 || split_cmd[0][0] == 'd') {
-                if (runtime.running) {
-                    dbg_print_dataptr();
-                } else {
-                    fprintf(stdout, "The program is not being run.\n");
-                }
-            }
-        } else if (count == 2) {
-            if (strcmp(split_cmd[0], "file") == 0 || split_cmd[0][0] == 'f') {
-                dbg_load(split_cmd[1]);
-            } else if (strcmp(split_cmd[0], "print") == 0 || split_cmd[0][0] == 'p') {
-                if (runtime.running) {
-                    int index = (int) strtol(split_cmd[1], (char**) NULL, 10);
-                    dbg_print(index);
-                } else {
-                    fprintf(stdout, "The program is not being run.\n");
-                }
-            }
+            command.handler(arg);
         }
+    }
 
-        for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < count; ++i) {
             if (split_cmd[i]) {
                 free(split_cmd[i]);
             }
         }
 
-        free(split_cmd);
+    free(split_cmd);
+}
+
+void cmd_help(char *unused) {
+    (void) unused;
+    
+    fprintf(stdout, "List of commands:\n\n");
+
+    for (int i = 0; i < command_count; ++i) {
+        const command_t command = commands[i];
+
+        // Skip first character in the command's name as it is already printed in the brackets (the abbreviation)
+        fprintf(stdout, "(%c)%s -- %s.\n", command.abbr, &command.name[1], command.desc);
+    }
+}
+
+void cmd_quit(char *unused) {
+    (void) unused;
+
+    run = false;
+}
+
+void cmd_file(char *file_name) {
+    if (file_name) {
+        dbg_load(file_name);
+    } else {
+        fprintf(stdout, "error: 'file' takes exactly one file path argument.\n");
+    }
+}
+
+void cmd_run(char *unused) {
+    (void) unused;
+    
+    if (loaded) {
+        dbg_run();
+    } else {
+        fprintf(stdout, "No brainfuck file specified, use 'file'.\n");
+    }
+}
+
+void cmd_next(char *unused) {
+    (void) unused;
+    
+    if (runtime.running) {
+        dbg_next();
+    } else {
+        fprintf(stdout, "The program is not being run.\n");
+    }
+}
+
+void cmd_dataptr(char *unused) {
+    (void) unused;
+    
+    if (runtime.running) {
+        dbg_print_dataptr();
+    } else {
+        fprintf(stdout, "The program is not being run.\n");
+    }
+}
+
+void cmd_print(char *index) {
+    if (runtime.running) {
+        if (index) {
+            int i = (int) strtol(index, (char**) NULL, 10);
+            dbg_print(i);
+        } else {
+            fprintf(stdout, "error: 'print' takes exactly one index argument in the range [0..%d).\n", DATA_SIZE);
+        }
+    } else {
+        fprintf(stdout, "The program is not being run.\n");
     }
 }
 
@@ -323,7 +412,7 @@ void dbg_load(const char *const file_name) {
 }
 
 void dbg_error(const char *fmt, ...) {
-    fprintf(stderr, "err: ");
+    fprintf(stderr, "error: ");
 
     va_list vl;
     va_start(vl, fmt);
@@ -338,15 +427,11 @@ void dbg_error(const char *fmt, ...) {
 }
 
 void dbg_run() {
-    if (loaded) {
-        memset(runtime.data, 0, sizeof(unsigned short) * DATA_SIZE);
+    memset(runtime.data, 0, sizeof(unsigned short) * DATA_SIZE);
 
-        runtime.pc = 0;
-        runtime.ptr = 0;
-        runtime.running = true;
-    } else {
-        fprintf(stdout, "No brainfuck file specified, use 'file'.\n");
-    }
+    runtime.pc = 0;
+    runtime.ptr = 0;
+    runtime.running = true;
 }
 
 void dbg_interpret(runtime_t *runtime, instruction_t instruction) {
