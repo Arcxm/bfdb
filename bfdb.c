@@ -383,7 +383,7 @@ void cmd_print(char *index) {
             int i = (int) strtol(index, (char**) NULL, 10);
             dbg_print(i);
         } else {
-            fprintf(stdout, "error: 'print' takes exactly one index argument in the range [0..%d).\n", DATA_SIZE);
+            dbg_print(runtime.ptr);
         }
     } else {
         fprintf(stdout, "The program is not being run.\n");
