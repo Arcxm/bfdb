@@ -124,6 +124,9 @@ void cmd_run(char *unused);
 /// The next command, steps an instruction
 void cmd_next(char *unused);
 
+/// The continue command, continues the execution until the end or until a runtime error occurs
+void cmd_continue(char *unused);
+
 /// The dataptr command, prints the data pointer
 void cmd_dataptr(char *unused);
 
@@ -133,13 +136,14 @@ void cmd_print(char *index);
 
 /// The commands
 command_t commands[] = {
-    { .name = "help",    .abbr = 'h', .desc = "Print this help",         .arg_desc = NULL,             .handler = &cmd_help    },
-    { .name = "quit",    .abbr = 'q', .desc = "Exit debugger",           .arg_desc = NULL,             .handler = &cmd_quit    },
-    { .name = "file",    .abbr = 'f', .desc = "Use file",                .arg_desc = "<filename>",     .handler = &cmd_file    },
-    { .name = "run",     .abbr = 'r', .desc = "Start execution",         .arg_desc = NULL,             .handler = &cmd_run     },
-    { .name = "next",    .abbr = 'n', .desc = "Step one instruction",    .arg_desc = NULL,             .handler = &cmd_next    },
-    { .name = "dataptr", .abbr = 'd', .desc = "Prints the data pointer", .arg_desc = NULL,             .handler = &cmd_dataptr },
-    { .name = "print",   .abbr = 'p', .desc = "Print cell",              .arg_desc = "[index = $ptr]", .handler = &cmd_print   }
+    { .name = "help",     .abbr = 'h', .desc = "Print this help",         .arg_desc = NULL,             .handler = &cmd_help     },
+    { .name = "quit",     .abbr = 'q', .desc = "Exit debugger",           .arg_desc = NULL,             .handler = &cmd_quit     },
+    { .name = "file",     .abbr = 'f', .desc = "Use file",                .arg_desc = "<filename>",     .handler = &cmd_file     },
+    { .name = "run",      .abbr = 'r', .desc = "Start execution",         .arg_desc = NULL,             .handler = &cmd_run      },
+    { .name = "next",     .abbr = 'n', .desc = "Step one instruction",    .arg_desc = NULL,             .handler = &cmd_next     },
+    { .name = "continue", .abbr = 'c', .desc = "Continue execution",      .arg_desc = NULL,             .handler = &cmd_continue },
+    { .name = "dataptr",  .abbr = 'd', .desc = "Prints the data pointer", .arg_desc = NULL,             .handler = &cmd_dataptr  },
+    { .name = "print",    .abbr = 'p', .desc = "Print cell",              .arg_desc = "[index = $ptr]", .handler = &cmd_print    }
 };
 
 /// The count of available commands
@@ -161,10 +165,12 @@ void dbg_run();
 /// Interprets an instruction on the given runtime
 /// @param runtime The runtime to use
 /// @param instruction The instruction to interpret
-void dbg_interpret(runtime_t *runtime, instruction_t instruction);
+/// @return Whether the runtime was terminated either by OP_END or a runtime error
+bool dbg_interpret(runtime_t *runtime, instruction_t instruction);
 
 /// Step in execution
-void dbg_next();
+/// @return Whether the interpretation of the next instruction terminated the runtime (see dbg_interpret's return)
+bool dbg_next();
 
 /// Prints the data pointer
 void dbg_print_dataptr();
@@ -374,6 +380,17 @@ void cmd_next(char *unused) {
     }
 }
 
+void cmd_continue(char *unused) {
+    (void) unused;
+
+    if (runtime.running) {
+        // Continue stepping in execution until the runtime stops because of OP_END or a runtime error
+        while (!dbg_next()) {}
+    } else {
+        fprintf(stdout, "The program is not being run.\n");
+    }
+}
+
 void cmd_dataptr(char *unused) {
     (void) unused;
     
@@ -441,15 +458,17 @@ void dbg_run() {
     runtime.running = true;
 }
 
-void dbg_interpret(runtime_t *runtime, instruction_t instruction) {
+bool dbg_interpret(runtime_t *runtime, instruction_t instruction) {
     // Make sure that a runtime is provided
     if (!runtime) {
-        return;
+        return false;
     }
 
     if (instruction.operator == OP_END) {
         fprintf(stdout, "Brainfuck exited normally.\n");
         runtime->running = false;
+
+        return true;
     } else {
         switch (instruction.operator) {
             case OP_INC:
@@ -457,6 +476,7 @@ void dbg_interpret(runtime_t *runtime, instruction_t instruction) {
                     runtime->ptr++;
                 } else {
                     dbg_error("trying to increment the data pointer out of range (%d)\n", DATA_SIZE);
+                    return true;
                 }
                 break;
             case OP_DEC:
@@ -464,6 +484,7 @@ void dbg_interpret(runtime_t *runtime, instruction_t instruction) {
                     runtime->ptr--;
                 } else {
                     dbg_error("trying to decrement the data pointer below 0\n");
+                    return true;
                 }
                 break;
             case OP_ADD:
@@ -491,11 +512,13 @@ void dbg_interpret(runtime_t *runtime, instruction_t instruction) {
             }
 
         runtime->pc++;
+
+        return false;
     }
 }
 
-void dbg_next() {
-    dbg_interpret(&runtime, program.instructions[runtime.pc]);
+bool dbg_next() {
+    return dbg_interpret(&runtime, program.instructions[runtime.pc]);
 }
 
 void dbg_print_dataptr() {
