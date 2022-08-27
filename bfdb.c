@@ -516,6 +516,8 @@ void dbg_print(int index) {
 }
 
 void dbg_print_op() {
+    fprintf(stdout, "@%d: ", runtime.pc + 1);
+
     switch (program.instructions[runtime.pc].operator) {
         case OP_INC:
             fputc('>', stdout);
