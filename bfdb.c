@@ -97,6 +97,9 @@ typedef struct command_t {
     /// Short description
     const char *desc;
 
+    /// Argument description
+    const char *arg_desc;
+
     /// The commands handler
     command_handler_t handler;
 } command_t;
@@ -130,13 +133,13 @@ void cmd_print(char *index);
 
 /// The commands
 command_t commands[] = {
-    { .name = "help",    .abbr = 'h', .desc = "Print this help",         .handler = &cmd_help },
-    { .name = "quit",    .abbr = 'q', .desc = "Exit debugger",           .handler = &cmd_quit },
-    { .name = "file",    .abbr = 'f', .desc = "Use file",                .handler = &cmd_file },
-    { .name = "run",     .abbr = 'r', .desc = "Start execution",         .handler = &cmd_run },
-    { .name = "next",    .abbr = 'n', .desc = "Step one instruction",    .handler = &cmd_next },
-    { .name = "dataptr", .abbr = 'd', .desc = "Prints the data pointer", .handler = &cmd_dataptr },
-    { .name = "print",   .abbr = 'p', .desc = "Print cell",              .handler = &cmd_print }
+    { .name = "help",    .abbr = 'h', .desc = "Print this help",         .arg_desc = NULL,             .handler = &cmd_help    },
+    { .name = "quit",    .abbr = 'q', .desc = "Exit debugger",           .arg_desc = NULL,             .handler = &cmd_quit    },
+    { .name = "file",    .abbr = 'f', .desc = "Use file",                .arg_desc = "<filename>",     .handler = &cmd_file    },
+    { .name = "run",     .abbr = 'r', .desc = "Start execution",         .arg_desc = NULL,             .handler = &cmd_run     },
+    { .name = "next",    .abbr = 'n', .desc = "Step one instruction",    .arg_desc = NULL,             .handler = &cmd_next    },
+    { .name = "dataptr", .abbr = 'd', .desc = "Prints the data pointer", .arg_desc = NULL,             .handler = &cmd_dataptr },
+    { .name = "print",   .abbr = 'p', .desc = "Print cell",              .arg_desc = "[index = $ptr]", .handler = &cmd_print   }
 };
 
 /// The count of available commands
@@ -329,7 +332,11 @@ void cmd_help(char *unused) {
         const command_t command = commands[i];
 
         // Skip first character in the command's name as it is already printed in the brackets (the abbreviation)
-        fprintf(stdout, "(%c)%s -- %s.\n", command.abbr, &command.name[1], command.desc);
+        if (command.arg_desc) {
+            fprintf(stdout, "(%c)%s %s -- %s.\n", command.abbr, &command.name[1], command.arg_desc, command.desc);
+        } else {
+            fprintf(stdout, "(%c)%s -- %s.\n", command.abbr, &command.name[1], command.desc);
+        }
     }
 }
 

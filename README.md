@@ -18,10 +18,9 @@ List of commands:
 
 (h)elp -- Print this help.
 (q)uit -- Exit debugger.
-
 (f)ile <filename> -- Use file.
 (r)un -- Start execution.
 (n)ext -- Step one instruction.
 (d)ataptr -- Prints the data pointer.
-(p)rint <index> -- Print cell.
+(p)rint [index = $ptr] -- Print cell.
 ```
