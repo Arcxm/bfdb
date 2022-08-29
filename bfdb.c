@@ -376,7 +376,7 @@ void cmd_file(char *file_name) {
     if (file_name) {
         dbg_load(file_name);
     } else {
-        fprintf(stdout, "error: 'file' takes exactly one file path argument.\n");
+        fprintf(stderr, "error: 'file' takes exactly one file path argument.\n");
     }
 }
 
@@ -409,7 +409,7 @@ void cmd_jump(char *index) {
             int i = (int) strtol(index, (char**) NULL, 10);
             dbg_jump(&program, i);
         } else {
-            fprintf(stdout, "error: 'jump' takes exactly one instruction index argument.\n");
+            fprintf(stderr, "error: 'jump' takes exactly one instruction index argument.\n");
         }
     } else {
         fprintf(stdout, "The program is not being run.\n");
@@ -462,7 +462,7 @@ void dbg_load(const char *const file_name) {
         loaded = compile(fp, &program);
 
         if (!loaded) {
-            fprintf(stdout, "Could not read from %s.\n", file_name);
+            fprintf(stderr, "Could not read from %s.\n", file_name);
         }
 
         fclose(fp);
@@ -555,7 +555,7 @@ bool dbg_interpret(runtime_t *runtime, instruction_t instruction) {
 
 bool dbg_next(int count) {
     if (count < 0) {
-        fprintf(stdout, "%d: Count has to be greater than 0!\n", count);
+        fprintf(stderr, "%d: Count has to be greater than 0!\n", count);
         return false;
     }
 
@@ -578,7 +578,7 @@ void dbg_jump(program_t *prog, int index) {
     }
 
     if (index < 1 || index > prog->instr_count) {
-        fprintf(stdout, "%d: Not in range of program's instructions [1..%d]\n", index, prog->instr_count);
+        fprintf(stderr, "%d: Not in range of program's instructions [1..%d]\n", index, prog->instr_count);
     } else {
         runtime.pc = index - 1;
     }
@@ -590,7 +590,7 @@ void dbg_print_dataptr() {
 
 void dbg_print(int index) {
     if (index < 0 || index >= DATA_SIZE) {
-        fprintf(stdout, "%d: Not in range [0..%d).\n", index, DATA_SIZE);
+        fprintf(stderr, "%d: Not in range [0..%d).\n", index, DATA_SIZE);
     } else {
         int c = runtime.data[index];
         if (isprint(c)) {
