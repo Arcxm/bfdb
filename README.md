@@ -20,7 +20,7 @@ List of commands:
 (q)uit -- Exit debugger.
 (f)ile <filename> -- Use file.
 (r)un -- Start execution.
-(n)ext -- Step one instruction.
+(n)ext [count = 1] -- Steps instructions.
 (j)ump <instr_index> -- Jumps to an instruction.
 (c)ontinue -- Continue execution.
 (d)ataptr -- Prints the data pointer.
