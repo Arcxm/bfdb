@@ -170,7 +170,7 @@ void dbg_load(const char *const file_name);
 
 /// Prints a formatted error as well as runtime information to stderr and stops execution
 /// @param fmt The format
-void dbg_error(const char *fmt, ...);
+void dbg_runtime_error(const char *fmt, ...);
 
 /// Start execution of the loaded brainfuck program
 void dbg_run();
@@ -471,7 +471,7 @@ void dbg_load(const char *const file_name) {
     }
 }
 
-void dbg_error(const char *fmt, ...) {
+void dbg_runtime_error(const char *fmt, ...) {
     fprintf(stderr, "error: ");
 
     va_list vl;
@@ -511,7 +511,7 @@ bool dbg_interpret(runtime_t *runtime, instruction_t instruction) {
                 if (runtime->ptr + 1 < DATA_SIZE) {
                     runtime->ptr++;
                 } else {
-                    dbg_error("trying to increment the data pointer out of range (%d)\n", DATA_SIZE);
+                    dbg_runtime_error("trying to increment the data pointer out of range (%d)\n", DATA_SIZE);
                     return true;
                 }
                 break;
@@ -519,7 +519,7 @@ bool dbg_interpret(runtime_t *runtime, instruction_t instruction) {
                 if (runtime->ptr > 0) {
                     runtime->ptr--;
                 } else {
-                    dbg_error("trying to decrement the data pointer below 0\n");
+                    dbg_runtime_error("trying to decrement the data pointer below 0\n");
                     return true;
                 }
                 break;
