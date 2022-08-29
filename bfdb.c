@@ -41,6 +41,9 @@ typedef struct program_t {
     /// The instructions of the brainfuck program
     instruction_t instructions[PROGRAM_SIZE];
 
+    /// The count of instructions
+    unsigned short instr_count;
+
     /// The stack that is used to keep track of jumps during compilation
     unsigned short stack[STACK_SIZE];
 
@@ -48,7 +51,7 @@ typedef struct program_t {
     unsigned int esp;
 } program_t;
 
-program_t program = { .esp = 0 };
+program_t program = { .instr_count = 0, .esp = 0 };
 
 /// "Compiles" the brainfuck program in fp to the intermediate representation
 /// @param fp The file to read
@@ -124,6 +127,10 @@ void cmd_run(char *unused);
 /// The next command, steps an instruction
 void cmd_next(char *unused);
 
+/// The jump command, jumps to an instruction
+/// @param index The index of the instruction to jump to
+void cmd_jump(char *index);
+
 /// The continue command, continues the execution until the end or until a runtime error occurs
 void cmd_continue(char *unused);
 
@@ -141,6 +148,7 @@ command_t commands[] = {
     { .name = "file",     .abbr = 'f', .desc = "Use file",                .arg_desc = "<filename>",     .handler = &cmd_file     },
     { .name = "run",      .abbr = 'r', .desc = "Start execution",         .arg_desc = NULL,             .handler = &cmd_run      },
     { .name = "next",     .abbr = 'n', .desc = "Step one instruction",    .arg_desc = NULL,             .handler = &cmd_next     },
+    { .name = "jump",     .abbr = 'j', .desc = "Jumps to an instruction", .arg_desc = "<instr_index>",  .handler = &cmd_jump     },
     { .name = "continue", .abbr = 'c', .desc = "Continue execution",      .arg_desc = NULL,             .handler = &cmd_continue },
     { .name = "dataptr",  .abbr = 'd', .desc = "Prints the data pointer", .arg_desc = NULL,             .handler = &cmd_dataptr  },
     { .name = "print",    .abbr = 'p', .desc = "Print cell",              .arg_desc = "[index = $ptr]", .handler = &cmd_print    }
@@ -171,6 +179,11 @@ bool dbg_interpret(runtime_t *runtime, instruction_t instruction);
 /// Step in execution
 /// @return Whether the interpretation of the next instruction terminated the runtime (see dbg_interpret's return)
 bool dbg_next();
+
+/// Jumps to the instruction at the given index
+/// @param prog The current running program
+/// @param index The index of the instruction to jump to
+void dbg_jump(program_t *prog, int index);
 
 /// Prints the data pointer
 void dbg_print_dataptr();
@@ -294,6 +307,7 @@ bool compile(FILE *fp, program_t *prog) {
     }
     
     prog->instructions[pc].operator = OP_END;
+    prog->instr_count = pc + 1;
 
     return true;
 }
@@ -375,6 +389,19 @@ void cmd_next(char *unused) {
     
     if (runtime.running) {
         dbg_next();
+    } else {
+        fprintf(stdout, "The program is not being run.\n");
+    }
+}
+
+void cmd_jump(char *index) {
+    if (runtime.running) {
+        if (index) {
+            int i = (int) strtol(index, (char**) NULL, 10);
+            dbg_jump(&program, i);
+        } else {
+            fprintf(stdout, "error: 'jump' takes exactly one instruction index argument.\n");
+        }
     } else {
         fprintf(stdout, "The program is not being run.\n");
     }
@@ -519,6 +546,19 @@ bool dbg_interpret(runtime_t *runtime, instruction_t instruction) {
 
 bool dbg_next() {
     return dbg_interpret(&runtime, program.instructions[runtime.pc]);
+}
+
+void dbg_jump(program_t *prog, int index) {
+    // Make sure that a program structure is provided
+    if (!prog) {
+        return;
+    }
+
+    if (index < 1 || index > prog->instr_count) {
+        fprintf(stdout, "%d: Not in range of program's instructions [1..%d]\n", index, prog->instr_count);
+    } else {
+        runtime.pc = index - 1;
+    }
 }
 
 void dbg_print_dataptr() {

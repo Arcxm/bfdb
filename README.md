@@ -21,6 +21,7 @@ List of commands:
 (f)ile <filename> -- Use file.
 (r)un -- Start execution.
 (n)ext -- Step one instruction.
+(j)ump <instr_index> -- Jumps to an instruction.
 (c)ontinue -- Continue execution.
 (d)ataptr -- Prints the data pointer.
 (p)rint [index = $ptr] -- Print cell.
