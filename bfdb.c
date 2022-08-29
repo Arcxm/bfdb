@@ -14,6 +14,7 @@
 
 // Intermediate representation
 
+/// Brainfuck's instructions as well as EOF to signal the end of the program
 const char* INSTRUCTIONS[] = { "EOF", ">", "<", "+", "-", ".", ",", "[", "]" };
 
 enum {
@@ -37,6 +38,7 @@ char **split(const char *const str, const char *const at, int *count);
 
 // "Compiling" the file to instructions
 
+/// A brainfuck program
 typedef struct program_t {
     /// The instructions of the brainfuck program
     instruction_t instructions[PROGRAM_SIZE];
@@ -51,9 +53,10 @@ typedef struct program_t {
     unsigned int esp;
 } program_t;
 
+/// The program currently associated with bfdb
 program_t program = { .instr_count = 0, .esp = 0 };
 
-/// "Compiles" the brainfuck program in fp to the intermediate representation
+/// Compiles the brainfuck program in fp to the intermediate representation
 /// @param fp The file to read
 /// @param prog The program structure to write the program to
 /// @return Whether or not the compilation succeeded
@@ -82,6 +85,7 @@ typedef struct runtime_t {
     unsigned int ptr;
 } runtime_t;
 
+/// The runtime currently associated with bfdb
 runtime_t runtime = { .running = false, .pc = 0, .ptr = 0 };
 
 // Commands
