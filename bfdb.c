@@ -128,8 +128,9 @@ void cmd_file(char *file_name);
 /// The run command, starts execution
 void cmd_run(char *unused);
 
-/// The next command, steps an instruction
-void cmd_next(char *unused);
+/// The next command, steps instructions
+/// @param count The count of instructions to step
+void cmd_next(char *count);
 
 /// The jump command, jumps to an instruction
 /// @param index The index of the instruction to jump to
@@ -151,7 +152,7 @@ command_t commands[] = {
     { .name = "quit",     .abbr = 'q', .desc = "Exit debugger",           .arg_desc = NULL,             .handler = &cmd_quit     },
     { .name = "file",     .abbr = 'f', .desc = "Use file",                .arg_desc = "<filename>",     .handler = &cmd_file     },
     { .name = "run",      .abbr = 'r', .desc = "Start execution",         .arg_desc = NULL,             .handler = &cmd_run      },
-    { .name = "next",     .abbr = 'n', .desc = "Step one instruction",    .arg_desc = NULL,             .handler = &cmd_next     },
+    { .name = "next",     .abbr = 'n', .desc = "Steps instructions",      .arg_desc = "[count = 1]",    .handler = &cmd_next     },
     { .name = "jump",     .abbr = 'j', .desc = "Jumps to an instruction", .arg_desc = "<instr_index>",  .handler = &cmd_jump     },
     { .name = "continue", .abbr = 'c', .desc = "Continue execution",      .arg_desc = NULL,             .handler = &cmd_continue },
     { .name = "dataptr",  .abbr = 'd', .desc = "Prints the data pointer", .arg_desc = NULL,             .handler = &cmd_dataptr  },
@@ -180,9 +181,10 @@ void dbg_run();
 /// @return Whether the runtime was terminated either by OP_END or a runtime error
 bool dbg_interpret(runtime_t *runtime, instruction_t instruction);
 
-/// Step in execution
-/// @return Whether the interpretation of the next instruction terminated the runtime (see dbg_interpret's return)
-bool dbg_next();
+/// Steps in execution
+/// @param count The count of instructions to step
+/// @return Whether the interpretation of the instructions terminated the runtime (see dbg_interpret's return)
+bool dbg_next(int count);
 
 /// Jumps to the instruction at the given index
 /// @param prog The current running program
@@ -388,11 +390,14 @@ void cmd_run(char *unused) {
     }
 }
 
-void cmd_next(char *unused) {
-    (void) unused;
-    
+void cmd_next(char *count) {
     if (runtime.running) {
-        dbg_next();
+        if (count) {
+            int c = (int) strtol(count, (char**) NULL, 10);
+            dbg_next(c);
+        } else {
+            dbg_next(1);
+        }
     } else {
         fprintf(stdout, "The program is not being run.\n");
     }
@@ -416,7 +421,7 @@ void cmd_continue(char *unused) {
 
     if (runtime.running) {
         // Continue stepping in execution until the runtime stops because of OP_END or a runtime error
-        while (!dbg_next()) {}
+        while (!dbg_next(1)) {}
     } else {
         fprintf(stdout, "The program is not being run.\n");
     }
@@ -548,8 +553,22 @@ bool dbg_interpret(runtime_t *runtime, instruction_t instruction) {
     }
 }
 
-bool dbg_next() {
-    return dbg_interpret(&runtime, program.instructions[runtime.pc]);
+bool dbg_next(int count) {
+    if (count < 0) {
+        fprintf(stdout, "%d: Count has to be greater than 0!\n", count);
+        return false;
+    }
+
+    bool ret = false;
+    for (int i = 0; i < count; ++i) {
+        ret = dbg_interpret(&runtime, program.instructions[runtime.pc]);
+
+        if (ret) {
+            break; // Break out of the loop as the runtime was terminated either by OP_END or a runtime error
+        }
+    }
+
+    return ret;
 }
 
 void dbg_jump(program_t *prog, int index) {
