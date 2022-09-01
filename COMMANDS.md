@@ -106,7 +106,7 @@ The continue command continues the execution until its end or until a runtime er
 
 ### Execution ended
 
-```continue
+```console
 Reading testContinue.bf...
 (bfdb) r
 @1: +
