@@ -13,6 +13,8 @@ $ ./bfdb example.bf
 
 ## Commands
 
+A more detailed list with examples can be found [here](COMMANDS.md).
+
 ```console
 List of commands:
 
