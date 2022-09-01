@@ -146,17 +146,21 @@ void cmd_dataptr(char *unused);
 /// @param index The index of the cell to print
 void cmd_print(char *index);
 
+/// The tape command, shows the tape around the current data pointer
+void cmd_tape(char *unused);
+
 /// The commands
 command_t commands[] = {
-    { .name = "help",     .abbr = 'h', .desc = "Print this help",         .arg_desc = NULL,             .handler = &cmd_help     },
-    { .name = "quit",     .abbr = 'q', .desc = "Exit debugger",           .arg_desc = NULL,             .handler = &cmd_quit     },
-    { .name = "file",     .abbr = 'f', .desc = "Use file",                .arg_desc = "<filename>",     .handler = &cmd_file     },
-    { .name = "run",      .abbr = 'r', .desc = "Start execution",         .arg_desc = NULL,             .handler = &cmd_run      },
-    { .name = "next",     .abbr = 'n', .desc = "Steps instructions",      .arg_desc = "[count = 1]",    .handler = &cmd_next     },
-    { .name = "jump",     .abbr = 'j', .desc = "Jumps to an instruction", .arg_desc = "<instr_index>",  .handler = &cmd_jump     },
-    { .name = "continue", .abbr = 'c', .desc = "Continue execution",      .arg_desc = NULL,             .handler = &cmd_continue },
-    { .name = "dataptr",  .abbr = 'd', .desc = "Prints the data pointer", .arg_desc = NULL,             .handler = &cmd_dataptr  },
-    { .name = "print",    .abbr = 'p', .desc = "Print cell",              .arg_desc = "[index = $ptr]", .handler = &cmd_print    }
+    { .name = "help",     .abbr = 'h', .desc = "Print this help",                       .arg_desc = NULL,             .handler = &cmd_help     },
+    { .name = "quit",     .abbr = 'q', .desc = "Exit debugger",                         .arg_desc = NULL,             .handler = &cmd_quit     },
+    { .name = "file",     .abbr = 'f', .desc = "Use file",                              .arg_desc = "<filename>",     .handler = &cmd_file     },
+    { .name = "run",      .abbr = 'r', .desc = "Start execution",                       .arg_desc = NULL,             .handler = &cmd_run      },
+    { .name = "next",     .abbr = 'n', .desc = "Steps instructions",                    .arg_desc = "[count = 1]",    .handler = &cmd_next     },
+    { .name = "jump",     .abbr = 'j', .desc = "Jumps to an instruction",               .arg_desc = "<instr_index>",  .handler = &cmd_jump     },
+    { .name = "continue", .abbr = 'c', .desc = "Continue execution",                    .arg_desc = NULL,             .handler = &cmd_continue },
+    { .name = "dataptr",  .abbr = 'd', .desc = "Prints the data pointer",               .arg_desc = NULL,             .handler = &cmd_dataptr  },
+    { .name = "print",    .abbr = 'p', .desc = "Print cell",                            .arg_desc = "[index = $ptr]", .handler = &cmd_print    },
+    { .name = "tape",     .abbr = 't', .desc = "View the tape around the data pointer", .arg_desc = NULL,             .handler = &cmd_tape     }
 };
 
 /// The count of available commands
@@ -197,6 +201,9 @@ void dbg_print_dataptr();
 /// Print the cell at the given index
 /// @param index The index of the cell to print
 void dbg_print(int index);
+
+/// Prints the tape around the current data pointer
+void dbg_print_tape();
 
 /// Print the operator at the current program counter
 void dbg_print_op();
@@ -450,6 +457,16 @@ void cmd_print(char *index) {
     }
 }
 
+void cmd_tape(char *unused) {
+    (void) unused;
+
+    if (runtime.running) {
+        dbg_print_tape();
+    } else {
+        fprintf(stdout, "The program is not being run.\n");
+    }
+}
+
 void dbg_load(const char *const file_name) {
     // TODO: Inform user if another file is already being debugged and ask if he wants to continue
     runtime.running = false;
@@ -599,6 +616,27 @@ void dbg_print(int index) {
             fprintf(stdout, "$[%d]: %d.\n", index, runtime.data[index]);
         }
     }
+}
+
+void dbg_print_tape() {
+    fputc('|', stdout);
+
+    for (int dptr = -4; dptr < 5; ++dptr) {
+        int ptr = runtime.ptr + dptr;
+
+        if (ptr < 0 || ptr >= DATA_SIZE) {
+            continue;
+        }
+
+        // dptr == 0 => dptr == runtime.ptr
+        if (dptr == 0) {
+            fprintf(stdout, " >>$[%d]: %d |", ptr, runtime.data[ptr]);
+        } else {
+            fprintf(stdout, " $[%d]: %d |", ptr, runtime.data[ptr]);
+        }
+    }
+
+    fputc('\n', stdout);
 }
 
 void dbg_print_op() {
