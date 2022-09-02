@@ -13,7 +13,7 @@ $ ./bfdb example.bf
 
 ## Error checks
 
-bfdb has both compile-time checks (e.g. mismatching '`[`' and '`]`') and run-time checks (e.g. decrementing the data pointer below 0).
+bfdb has both compile-time checks (e.g. mismatching `[` and `]`) and run-time checks (e.g. decrementing the data pointer below 0).
 
 ## Commands
 
