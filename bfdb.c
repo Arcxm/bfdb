@@ -36,7 +36,7 @@ typedef struct instruction_t {
 /// @return An array of c-strings that contains the substrings
 char **split(const char *const str, const char *const at, int *count);
 
-// "Compiling" the file to instructions
+// Compilation
 
 /// A brainfuck program
 typedef struct program_t {
@@ -61,6 +61,12 @@ program_t program = { .instr_count = 0, .esp = 0 };
 /// @param prog The program structure to write the program to
 /// @return Whether or not the compilation succeeded
 bool compile(FILE *fp, program_t *prog);
+
+/// Prints a formatted error as well as line and column information to stderr
+/// @param line The line the error occured in
+/// @param col The column in the line
+/// @param fmt The format
+void compile_error(int line, int col, const char *fmt, ...);
 
 // bfdb vars
 
@@ -267,6 +273,11 @@ bool compile(FILE *fp, program_t *prog) {
         return false;
     }
 
+    /// The current line in the file
+    int line = 1;
+    /// The current column in the file
+    int col = 1;
+
     unsigned short pc = 0;
     unsigned short jmp_pc;
 
@@ -294,12 +305,14 @@ bool compile(FILE *fp, program_t *prog) {
             case '[':
                 prog->instructions[pc].operator = OP_JMP;
                 if (prog->esp == STACK_SIZE) {
+                    compile_error(line, col, "loop count exceeds bfdb's capacity (%d)\n", STACK_SIZE);
                     return false;
                 }
                 prog->stack[prog->esp++] = pc;
                 break;
             case ']':
                 if (prog->esp == 0) {
+                    compile_error(line, col, "unmatched ']'\n");
                     return false;
                 }
                 jmp_pc = prog->stack[--prog->esp];
@@ -313,9 +326,21 @@ bool compile(FILE *fp, program_t *prog) {
         }
 
         pc++;
+
+        if (c == '\n') {
+            col = 1;
+            line++;
+        } else {
+            col++;
+        }
     }
 
-    if (prog->esp != 0 || pc == PROGRAM_SIZE) {
+    if (pc == PROGRAM_SIZE) {
+        compile_error(line, col, "instruction count exceeds bfdb's capacity (%d)\n", PROGRAM_SIZE);
+        return false;
+    }
+
+    if (prog->esp != 0) {
         return false;
     }
     
@@ -323,6 +348,17 @@ bool compile(FILE *fp, program_t *prog) {
     prog->instr_count = pc + 1;
 
     return true;
+}
+
+void compile_error(int line, int col, const char *fmt, ...) {
+    fprintf(stderr, "%d:%d: compilation error: ", line, col);
+
+    va_list vl;
+    va_start(vl, fmt);
+    vfprintf(stderr, fmt, vl);
+    va_end(vl);
+
+    fprintf(stdout, "Compilation exited with error.\n");
 }
 
 void parse_command(const char *cmd) {
@@ -489,7 +525,7 @@ void dbg_load(const char *const file_name) {
 }
 
 void dbg_runtime_error(const char *fmt, ...) {
-    fprintf(stderr, "error: ");
+    fprintf(stderr, "Runtime error: ");
 
     va_list vl;
     va_start(vl, fmt);
