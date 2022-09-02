@@ -11,6 +11,10 @@ $ make
 $ ./bfdb example.bf
 ```
 
+## Error checks
+
+bfdb has both compile-time checks (e.g. mismatching '`[`' and '`]`') and run-time checks (e.g. decrementing the data pointer below 0).
+
 ## Commands
 
 A more detailed list with examples can be found [here](COMMANDS.md).
