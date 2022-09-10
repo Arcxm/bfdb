@@ -466,8 +466,10 @@ void cmd_run(char *unused) {
 void cmd_next(char *count) {
     if (runtime.running) {
         if (count) {
-            int c = (int) strtol(count, (char**) NULL, 10);
-            dbg_next(c);
+            int c;
+            if (to_int(count, 10, false, &c)) {
+                dbg_next(c);
+            }
         } else {
             dbg_next(1);
         }
@@ -479,8 +481,10 @@ void cmd_next(char *count) {
 void cmd_jump(char *index) {
     if (runtime.running) {
         if (index) {
-            int i = (int) strtol(index, (char**) NULL, 10);
-            dbg_jump(&program, i);
+            int i;
+            if (to_int(index, 10, false, &i)) {
+                dbg_jump(&program, i);
+            }
         } else {
             fprintf(stderr, "error: 'jump' takes exactly one instruction index argument.\n");
         }
@@ -513,8 +517,10 @@ void cmd_dataptr(char *unused) {
 void cmd_print(char *index) {
     if (runtime.running) {
         if (index) {
-            int i = (int) strtol(index, (char**) NULL, 10);
-            dbg_print(i);
+            int i;
+            if (to_int(index, 10, false, &i)) {
+                dbg_print(i);
+            }
         } else {
             dbg_print(runtime.ptr);
         }
