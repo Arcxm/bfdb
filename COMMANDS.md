@@ -13,6 +13,7 @@
 - [dataptr](#dataptr)
 - [print](#print)
 - [tape](#tape)
+- [set](#set)
 
 ## Abbreviations
 
@@ -38,6 +39,7 @@ List of commands:
 (d)ataptr -- Prints the data pointer.
 (p)rint [index = $ptr] -- Print cell.
 (t)ape -- View the tape around the data pointer.
+(s)et <value> -- Sets the value of the current cell.
 (bfdb)
 ```
 
@@ -173,5 +175,21 @@ The tape command prints the tape around the data pointer.
 (bfdb) t
 | $[2]: 2 | $[3]: 3 | $[4]: 4 | $[5]: 5 | >>$[6]: 5 | $[7]: 0 | $[8]: 0 | $[9]: 0 | $[10]: 0 |
 @27: +
+(bfdb)
+```
+
+## set
+
+The set command sets the value of the cell the data pointer is currently pointing to.
+
+```console
+(bfdb) p
+$[0]: 0.
+@1: +
+(bfdb) s 100
+@1: +
+(bfdb) p
+$[0]: 100 ('d').
+@1: +
 (bfdb)
 ```

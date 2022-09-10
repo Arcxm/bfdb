@@ -163,6 +163,10 @@ void cmd_print(char *index);
 /// The tape command, shows the tape around the current data pointer
 void cmd_tape(char *unused);
 
+/// The set command, sets the value of the current cell
+/// @param value The value to set the cell to
+void cmd_set(char *value);
+
 /// The commands
 command_t commands[] = {
     { .name = "help",     .abbr = 'h', .desc = "Print this help",                       .arg_desc = NULL,             .handler = &cmd_help     },
@@ -174,7 +178,8 @@ command_t commands[] = {
     { .name = "continue", .abbr = 'c', .desc = "Continue execution",                    .arg_desc = NULL,             .handler = &cmd_continue },
     { .name = "dataptr",  .abbr = 'd', .desc = "Prints the data pointer",               .arg_desc = NULL,             .handler = &cmd_dataptr  },
     { .name = "print",    .abbr = 'p', .desc = "Print cell",                            .arg_desc = "[index = $ptr]", .handler = &cmd_print    },
-    { .name = "tape",     .abbr = 't', .desc = "View the tape around the data pointer", .arg_desc = NULL,             .handler = &cmd_tape     }
+    { .name = "tape",     .abbr = 't', .desc = "View the tape around the data pointer", .arg_desc = NULL,             .handler = &cmd_tape     },
+    { .name = "set",      .abbr = 's', .desc = "Sets the value of the current cell",    .arg_desc = "<value>",        .handler = &cmd_set      }
 };
 
 /// The count of available commands
@@ -221,6 +226,11 @@ void dbg_print_tape();
 
 /// Print the operator at the current program counter
 void dbg_print_op();
+
+/// Sets the value of the cell at the given index
+/// @param index The index of the cell
+/// @param value The value to set the cell to
+void dbg_set_cell(int index, unsigned short value);
 
 /// The programs entry point
 /// @param argc The argument count
@@ -539,6 +549,21 @@ void cmd_tape(char *unused) {
     }
 }
 
+void cmd_set(char *value) {
+    if (runtime.running) {
+        if (value) {
+            int v;
+            if (to_int(value, 10, false, &v)) {
+                dbg_set_cell(runtime.ptr, v);
+            }
+        } else {
+            fprintf(stderr, "error: 'set' takes exactly one value argument.\n");
+        }
+    } else {
+        fprintf(stdout, "The program is not being run.\n");
+    }
+}
+
 void dbg_load(const char *const file_name) {
     // TODO: Inform user if another file is already being debugged and ask if he wants to continue
     runtime.running = false;
@@ -745,4 +770,12 @@ void dbg_print_op() {
     }
 
     fputc('\n', stdout);
+}
+
+void dbg_set_cell(int index, unsigned short value) {
+    if (index < 0 || index >= DATA_SIZE) {
+        fprintf(stderr, "%d: Not in range [0..%d).\n", index, DATA_SIZE);
+    } else {
+        runtime.data[index] = value;
+    }
 }

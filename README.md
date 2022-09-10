@@ -32,4 +32,5 @@ List of commands:
 (d)ataptr -- Prints the data pointer.
 (p)rint [index = $ptr] -- Print cell.
 (t)ape -- View the tape around the data pointer.
+(s)et <value> -- Sets the value of the current cell.
 ```
