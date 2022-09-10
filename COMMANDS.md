@@ -143,7 +143,7 @@ $ptr: 11
 
 ## print
 
-The print command prints the contents of a cell.
+The print command prints the contents of a cell and displays the character if it is printable.
 The index of the cell can be specified by a parameter that defaults to the cell to which the data pointer is currently pointing.
 
 ### Without argument
@@ -164,6 +164,15 @@ $ptr: 1
 (bfdb) p 4
 $[4]: 0.
 @19: +
+(bfdb)
+```
+
+### Printable character
+
+```console
+(bfdb) p
+$[1]: 65 ('A').
+@25: .
 (bfdb)
 ```
 
