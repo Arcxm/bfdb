@@ -27,14 +27,22 @@ typedef struct instruction_t {
     unsigned short operand;
 } instruction_t;
 
-// Helper function
+// Helper functions
 
-/// Helper function that splits a str by delimiters and returns a c-string array and the count of strings splitted
+/// Splits a string by delimiters and returns a c-string array and the count of strings splitted
 /// @param str The string to split
 /// @param at The delimiters to split at
 /// @param count The count of substrings
 /// @return An array of c-strings that contains the substrings
 char **split(const char *const str, const char *const at, int *count);
+
+/// Converts a string to a number
+/// @param str The string to convert
+/// @param base The base to use
+/// @param allow_neg Whether or not negative numbers should be allowed
+/// @param converted The converted number
+/// @return Whether or not the conversion succeeded
+bool to_int(const char *const str, int base, bool allow_neg, int *converted);
 
 // Compilation
 
@@ -265,6 +273,28 @@ char **split(const char *const str, const char *const at, int *count) {
 
 		return NULL;
 	}
+}
+
+bool to_int(const char *const str, int base, bool allow_neg, int *converted) {
+    if (str && converted) {
+        char *endptr;
+
+        int result = (int) strtol(str, &endptr, base);
+        *converted = result;
+
+        // If endptr points to the beginning of the string, no conversion happened
+        if (endptr == str) {
+            fprintf(stderr, "error: '%s' invalid numeric argument.\n", str);
+            return false;
+        } else if (!allow_neg && result < 0) {
+            fprintf(stderr, "error: '%s' negative not allowed.\n", str);
+            return false;
+        } else {
+            return true;
+        }
+    } else {
+        return false;
+    }
 }
 
 bool compile(FILE *fp, program_t *prog) {
