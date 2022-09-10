@@ -317,7 +317,7 @@ bool compile(FILE *fp, program_t *prog) {
                 }
                 jmp_pc = prog->stack[--prog->esp];
                 prog->instructions[pc].operator = OP_RET;
-                prog->instructions[pc].operator = jmp_pc;
+                prog->instructions[pc].operand = jmp_pc;
                 prog->instructions[jmp_pc].operator = pc;
                 break;
             default:
