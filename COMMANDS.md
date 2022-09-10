@@ -10,8 +10,13 @@
 - [next](#next)
 - [jump](#jump)
 - [continue](#continue)
+    - [Execution ended](#execution-ended)
+    - [Runtime error occured](#runtime-error-occured)
 - [dataptr](#dataptr)
 - [print](#print)
+    - [Without argument](#without-argument)
+    - [With argument](#with-argument)
+    - [Printable character](#printable-character)
 - [tape](#tape)
 - [set](#set)
 
@@ -45,7 +50,7 @@ List of commands:
 
 ## quit
 
-The quit command, exits the debugger.
+The quit command exits the debugger.
 
 ```console
 (bfdb) q
