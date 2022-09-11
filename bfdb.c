@@ -405,14 +405,14 @@ bool compile(FILE *fp, program_t *prog) {
 }
 
 void compile_error(int line, int col, const char *fmt, ...) {
-    fprintf(stderr, "%d:%d: compilation error: ", line, col);
+    fprintf(stderr, "%d:%d: \x1B[31mcompilation error\x1B[0m: ", line, col);
 
     va_list vl;
     va_start(vl, fmt);
     vfprintf(stderr, fmt, vl);
     va_end(vl);
 
-    fprintf(stdout, "Compilation exited with error.\n");
+    fprintf(stdout, "Compilation exited with \x1B[31merror\x1B[0m.\n");
 }
 
 void parse_command(const char *cmd) {
@@ -600,7 +600,7 @@ void dbg_load(const char *const file_name) {
 }
 
 void dbg_runtime_error(const char *fmt, ...) {
-    fprintf(stderr, "Runtime error: ");
+    fprintf(stderr, "\x1B[31mRuntime error\x1B[0m: ");
 
     va_list vl;
     va_start(vl, fmt);
@@ -610,7 +610,7 @@ void dbg_runtime_error(const char *fmt, ...) {
     unsigned short operator = program.instructions[runtime.pc].operator;
     fprintf(stderr, "At instruction %d ('%s'). $[$ptr: %d]: %d.\n", runtime.pc + 1, INSTRUCTIONS[operator], runtime.ptr, runtime.data[runtime.ptr]);
 
-    fprintf(stdout, "Brainfuck exited with error.\n");
+    fprintf(stdout, "Brainfuck exited with \x1B[31merror\x1B[0m.\n");
     runtime.running = false;
 }
 
