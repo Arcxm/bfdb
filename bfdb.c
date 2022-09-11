@@ -44,6 +44,11 @@ char **split(const char *const str, const char *const at, int *count);
 /// @return Whether or not the conversion succeeded
 bool to_int(const char *const str, int base, bool allow_neg, int *converted);
 
+/// Checks if the index is in the tape's range
+/// @param index The index to check
+/// @return Whether or not the given index is valid
+bool dataptr_in_range(int index);
+
 // Compilation
 
 /// A brainfuck program
@@ -304,6 +309,15 @@ bool to_int(const char *const str, int base, bool allow_neg, int *converted) {
         }
     } else {
         return false;
+    }
+}
+
+bool dataptr_in_range(int index) {
+    if (index < 0 || index >= DATA_SIZE) {
+        fprintf(stderr, "%d: Not in range [0..%d).\n", index, DATA_SIZE);
+        return false;
+    } else {
+        return true;
     }
 }
 
@@ -703,9 +717,7 @@ void dbg_print_dataptr() {
 }
 
 void dbg_print(int index) {
-    if (index < 0 || index >= DATA_SIZE) {
-        fprintf(stderr, "%d: Not in range [0..%d).\n", index, DATA_SIZE);
-    } else {
+    if (dataptr_in_range(index)) {
         int c = runtime.data[index];
         if (isprint(c)) {
             fprintf(stdout, "$[%d]: %d ('%c').\n", index, runtime.data[index], c);
@@ -773,9 +785,7 @@ void dbg_print_op() {
 }
 
 void dbg_set_cell(int index, unsigned short value) {
-    if (index < 0 || index >= DATA_SIZE) {
-        fprintf(stderr, "%d: Not in range [0..%d).\n", index, DATA_SIZE);
-    } else {
+    if (dataptr_in_range(index)) {
         runtime.data[index] = value;
     }
 }
