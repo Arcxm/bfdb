@@ -129,7 +129,7 @@ Reading testRuntimeError.bf...
 (bfdb) r
 @1: >
 (bfdb) c
-error: trying to decrement the data pointer below 0
+error: trying to decrement the data pointer below 0.
 At instruction 3 ('<'). $[$ptr: 0]: 0.
 Brainfuck exited with error.
 (bfdb)
@@ -141,7 +141,7 @@ The dataptr command prints the current data pointer.
 
 ```console
 (bfdb) d
-$ptr: 11
+$ptr: 11.
 @20: +
 (bfdb)
 ```
@@ -158,7 +158,7 @@ The index of the cell can be specified by a parameter that defaults to the cell 
 $[1]: 0.
 @22: +
 (bfdb) d
-$ptr: 1
+$ptr: 1.
 @22: +
 (bfdb)
 ```
