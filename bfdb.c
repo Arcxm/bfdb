@@ -345,14 +345,14 @@ bool compile(FILE *fp, program_t *prog) {
             case '[':
                 prog->instructions[pc].operator = OP_JMP;
                 if (prog->esp == STACK_SIZE) {
-                    compile_error(line, col, "loop count exceeds bfdb's capacity (%d)\n", STACK_SIZE);
+                    compile_error(line, col, "loop count exceeds bfdb's capacity (%d).\n", STACK_SIZE);
                     return false;
                 }
                 prog->stack[prog->esp++] = pc;
                 break;
             case ']':
                 if (prog->esp == 0) {
-                    compile_error(line, col, "unmatched ']'\n");
+                    compile_error(line, col, "unmatched ']'.\n");
                     return false;
                 }
                 jmp_pc = prog->stack[--prog->esp];
@@ -376,7 +376,7 @@ bool compile(FILE *fp, program_t *prog) {
     }
 
     if (pc == PROGRAM_SIZE) {
-        compile_error(line, col, "instruction count exceeds bfdb's capacity (%d)\n", PROGRAM_SIZE);
+        compile_error(line, col, "instruction count exceeds bfdb's capacity (%d).\n", PROGRAM_SIZE);
         return false;
     }
 
@@ -625,7 +625,7 @@ bool dbg_interpret(runtime_t *runtime, instruction_t instruction) {
                 if (runtime->ptr + 1 < DATA_SIZE) {
                     runtime->ptr++;
                 } else {
-                    dbg_runtime_error("trying to increment the data pointer out of range (%d)\n", DATA_SIZE);
+                    dbg_runtime_error("trying to increment the data pointer out of range (%d).\n", DATA_SIZE);
                     return true;
                 }
                 break;
@@ -633,7 +633,7 @@ bool dbg_interpret(runtime_t *runtime, instruction_t instruction) {
                 if (runtime->ptr > 0) {
                     runtime->ptr--;
                 } else {
-                    dbg_runtime_error("trying to decrement the data pointer below 0\n");
+                    dbg_runtime_error("trying to decrement the data pointer below 0.\n");
                     return true;
                 }
                 break;
@@ -692,14 +692,14 @@ void dbg_jump(program_t *prog, int index) {
     }
 
     if (index < 1 || index > prog->instr_count) {
-        fprintf(stderr, "%d: Not in range of program's instructions [1..%d]\n", index, prog->instr_count);
+        fprintf(stderr, "%d: Not in range of program's instructions [1..%d].\n", index, prog->instr_count);
     } else {
         runtime.pc = index - 1;
     }
 }
 
 void dbg_print_dataptr() {
-    fprintf(stdout, "$ptr: %d\n", runtime.ptr);
+    fprintf(stdout, "$ptr: %d.\n", runtime.ptr);
 }
 
 void dbg_print(int index) {
