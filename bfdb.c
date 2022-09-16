@@ -425,7 +425,7 @@ void parse_command(const char *cmd) {
     int count = 0;
     char **split_cmd = split(cmd, " ", &count);
 
-    // TODO: Print help on unknown command
+    bool executed = false;
     for (int i = 0; i < command_count; ++i) {
         const command_t command = commands[i];
 
@@ -434,7 +434,12 @@ void parse_command(const char *cmd) {
             char *arg = (count == 2) ? split_cmd[1] : NULL;
 
             command.handler(arg);
+            executed = true;
         }
+    }
+
+    if (!executed) {
+        fprintf(stderr, "\x1B[31merror\x1B[0m: '%s' is not a valid command. Try \"help\".\n", split_cmd[0]);
     }
 
     for (int i = 0; i < count; ++i) {
