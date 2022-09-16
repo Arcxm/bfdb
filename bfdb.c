@@ -425,6 +425,10 @@ void parse_command(const char *cmd) {
     int count = 0;
     char **split_cmd = split(cmd, " ", &count);
 
+    if (count == 0 || split_cmd == NULL) {
+        return;
+    }
+
     bool executed = false;
     for (int i = 0; i < command_count; ++i) {
         const command_t command = commands[i];
