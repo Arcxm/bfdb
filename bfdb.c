@@ -58,16 +58,10 @@ typedef struct program_t {
 
     /// The count of instructions
     unsigned short instr_count;
-
-    /// The stack that is used to keep track of jumps during compilation
-    unsigned short stack[STACK_SIZE];
-
-    /// The stack pointer
-    unsigned int esp;
 } program_t;
 
 /// The program currently associated with bfdb
-program_t program = { .instr_count = 0, .esp = 0 };
+program_t program = { .instr_count = 0 };
 
 /// Compiles the brainfuck program in fp to the intermediate representation
 /// @param fp The file to read
@@ -332,6 +326,11 @@ bool compile(FILE *fp, program_t *prog) {
     /// The current column in the file
     int col = 1;
 
+    /// The stack that is used to keep track of jumps during compilation
+    unsigned short stack[STACK_SIZE];
+    /// The stack pointer
+    unsigned int esp = 0;
+
     unsigned short pc = 0;
     unsigned short jmp_pc;
 
@@ -358,18 +357,18 @@ bool compile(FILE *fp, program_t *prog) {
                 break;
             case '[':
                 prog->instructions[pc].operator = OP_JMP;
-                if (prog->esp == STACK_SIZE) {
+                if (esp == STACK_SIZE) {
                     compile_error(line, col, "loop count exceeds bfdb's capacity (%d).\n", STACK_SIZE);
                     return false;
                 }
-                prog->stack[prog->esp++] = pc;
+                stack[esp++] = pc;
                 break;
             case ']':
-                if (prog->esp == 0) {
+                if (esp == 0) {
                     compile_error(line, col, "unmatched ']'.\n");
                     return false;
                 }
-                jmp_pc = prog->stack[--prog->esp];
+                jmp_pc = stack[--esp];
                 prog->instructions[pc].operator = OP_RET;
                 prog->instructions[pc].operand = jmp_pc;
                 prog->instructions[jmp_pc].operator = pc;
@@ -394,7 +393,7 @@ bool compile(FILE *fp, program_t *prog) {
         return false;
     }
 
-    if (prog->esp != 0) {
+    if (esp != 0) {
         return false;
     }
     
