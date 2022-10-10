@@ -297,10 +297,10 @@ bool to_int(const char *const str, int base, bool allow_neg, int *converted) {
 
         // If endptr points to the beginning of the string, no conversion happened
         if (endptr == str) {
-            fprintf(stderr, "error: '%s' invalid numeric argument.\n", str);
+            fprintf(stderr, "\x1B[31mError\x1B[0m: '%s' invalid numeric argument.\n", str);
             return false;
         } else if (!allow_neg && result < 0) {
-            fprintf(stderr, "error: '%s' negative not allowed.\n", str);
+            fprintf(stderr, "\x1B[31mError\x1B[0m: '%s' negative not allowed.\n", str);
             return false;
         } else {
             return true;
