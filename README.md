@@ -29,7 +29,7 @@ List of commands:
 (n)ext [count = 1] -- Steps instructions.
 (j)ump <instr_index> -- Jumps to an instruction.
 (c)ontinue -- Continue execution.
-(d)ataptr -- Prints the data pointer.
+(d)ataptr [ptr] -- Prints or sets the data pointer.
 (p)rint [index = $ptr] -- Print cell.
 (t)ape -- View the tape around the data pointer.
 (s)et <value> -- Sets the value of the current cell.

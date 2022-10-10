@@ -13,9 +13,11 @@
     - [Execution ended](#execution-ended)
     - [Runtime error occured](#runtime-error-occured)
 - [dataptr](#dataptr)
+    - [Without data pointer](#without-data-pointer)
+    - [With data pointer](#with-data-pointer)
 - [print](#print)
-    - [Without argument](#without-argument)
-    - [With argument](#with-argument)
+    - [Without cell index](#without-cell-index)
+    - [With cell index](#with-cell-index)
     - [Printable character](#printable-character)
 - [tape](#tape)
 - [set](#set)
@@ -41,7 +43,7 @@ List of commands:
 (n)ext [count = 1] -- Steps instructions.
 (j)ump <instr_index> -- Jumps to an instruction.
 (c)ontinue -- Continue execution.
-(d)ataptr -- Prints the data pointer.
+(d)ataptr [ptr] -- Prints or sets the data pointer.
 (p)rint [index = $ptr] -- Print cell.
 (t)ape -- View the tape around the data pointer.
 (s)et <value> -- Sets the value of the current cell.
@@ -137,11 +139,25 @@ Brainfuck exited with error.
 
 ## dataptr
 
-The dataptr command prints the current data pointer.
+The dataptr command prints the current data pointer or sets it if the optional argument is given.
+
+### Without data pointer
 
 ```console
 (bfdb) d
 $ptr: 11.
+@20: +
+(bfdb)
+```
+
+### With data pointer
+
+```console
+(bfdb) d
+$ptr: 11.
+@20: +
+(bfdb) d 100
+$ptr: 100.
 @20: +
 (bfdb)
 ```
@@ -151,7 +167,7 @@ $ptr: 11.
 The print command prints the contents of a cell and displays the character if it is printable.
 The index of the cell can be specified by a parameter that defaults to the cell to which the data pointer is currently pointing.
 
-### Without argument
+### Without cell index
 
 ```console
 (bfdb) p
@@ -163,7 +179,7 @@ $ptr: 1.
 (bfdb)
 ```
 
-### With argument
+### With cell index
 
 ```console
 (bfdb) p 4

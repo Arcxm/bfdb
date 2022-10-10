@@ -175,7 +175,7 @@ command_t commands[] = {
     { .name = "next",     .abbr = 'n', .desc = "Steps instructions",                    .arg_desc = "[count = 1]",    .handler = &cmd_next     },
     { .name = "jump",     .abbr = 'j', .desc = "Jumps to an instruction",               .arg_desc = "<instr_index>",  .handler = &cmd_jump     },
     { .name = "continue", .abbr = 'c', .desc = "Continue execution",                    .arg_desc = NULL,             .handler = &cmd_continue },
-    { .name = "dataptr",  .abbr = 'd', .desc = "Prints the data pointer",               .arg_desc = NULL,             .handler = &cmd_dataptr  },
+    { .name = "dataptr",  .abbr = 'd', .desc = "Prints or sets the data pointer",       .arg_desc = "[ptr]",          .handler = &cmd_dataptr  },
     { .name = "print",    .abbr = 'p', .desc = "Print cell",                            .arg_desc = "[index = $ptr]", .handler = &cmd_print    },
     { .name = "tape",     .abbr = 't', .desc = "View the tape around the data pointer", .arg_desc = NULL,             .handler = &cmd_tape     },
     { .name = "set",      .abbr = 's', .desc = "Sets the value of the current cell",    .arg_desc = "<value>",        .handler = &cmd_set      }
@@ -215,6 +215,10 @@ void dbg_jump(program_t *prog, int index);
 
 /// Prints the data pointer
 void dbg_print_dataptr();
+
+/// Sets the data pointer
+/// @param dataptr The new data pointer
+void dbg_set_dataptr(int dataptr);
 
 /// Print the cell at the given index
 /// @param index The index of the cell to print
@@ -536,11 +540,16 @@ void cmd_continue(char *unused) {
     }
 }
 
-void cmd_dataptr(char *unused) {
-    (void) unused;
-    
+void cmd_dataptr(char *index) {
     if (runtime.running) {
-        dbg_print_dataptr();
+        if (index) {
+            int i;
+            if (to_int(index, 10, false, &i)) {
+                dbg_set_dataptr(i);
+            }
+        } else {
+            dbg_print_dataptr();
+        }
     } else {
         fprintf(stdout, "The program is not being run.\n");
     }
@@ -722,6 +731,12 @@ void dbg_jump(program_t *prog, int index) {
 
 void dbg_print_dataptr() {
     fprintf(stdout, "$ptr: %d.\n", runtime.ptr);
+}
+
+void dbg_set_dataptr(int dataptr) {
+    if (dataptr_in_range(dataptr)) {
+        runtime.ptr = dataptr;
+    }
 }
 
 void dbg_print(int index) {
