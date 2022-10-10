@@ -303,6 +303,10 @@ bool to_int(const char *const str, int base, bool allow_neg, int *converted) {
             fprintf(stderr, "\x1B[31mError\x1B[0m: '%s' negative not allowed.\n", str);
             return false;
         } else {
+            // Not the whole string was parsed
+            if (*endptr != '\0') {
+                fprintf(stdout, "\x1B[33mWarning\x1B[0m: skipped invalid characters '%s'.\n", endptr);
+            }
             return true;
         }
     } else {
