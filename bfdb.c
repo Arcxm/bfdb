@@ -450,7 +450,7 @@ void parse_command(const char *cmd) {
     }
 
     if (!executed) {
-        fprintf(stderr, "\x1B[31merror\x1B[0m: '%s' is not a valid command. Try \"help\".\n", split_cmd[0]);
+        fprintf(stderr, "\x1B[31mError\x1B[0m: '%s' is not a valid command. Try 'help'.\n", split_cmd[0]);
     }
 
     for (int i = 0; i < count; ++i) {
@@ -489,7 +489,7 @@ void cmd_file(char *file_name) {
     if (file_name) {
         dbg_load(file_name);
     } else {
-        fprintf(stderr, "error: 'file' takes exactly one file path argument.\n");
+        fprintf(stderr, "\x1B[31mError\x1B[0m: 'file' takes exactly one file path argument.\n");
     }
 }
 
@@ -526,7 +526,7 @@ void cmd_jump(char *index) {
                 dbg_jump(&program, i);
             }
         } else {
-            fprintf(stderr, "error: 'jump' takes exactly one instruction index argument.\n");
+            fprintf(stderr, "\x1B[31mError\x1B[0m: 'jump' takes exactly one instruction index argument.\n");
         }
     } else {
         fprintf(stdout, "The program is not being run.\n");
@@ -592,7 +592,7 @@ void cmd_set(char *value) {
                 dbg_set_cell(runtime.ptr, v);
             }
         } else {
-            fprintf(stderr, "error: 'set' takes exactly one value argument.\n");
+            fprintf(stderr, "\x1B[31mError\x1B[0m: 'set' takes exactly one value argument.\n");
         }
     } else {
         fprintf(stdout, "The program is not being run.\n");
