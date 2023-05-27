@@ -621,7 +621,7 @@ void dbg_load(const char *const file_name) {
 }
 
 void dbg_runtime_error(const char *fmt, ...) {
-    fprintf(stderr, "\x1B[31mRuntime error\x1B[0m: ");
+    fprintf(stderr, "\n\x1B[31mRuntime error\x1B[0m: ");
 
     va_list vl;
     va_start(vl, fmt);
@@ -650,7 +650,7 @@ bool dbg_interpret(runtime_t *runtime, instruction_t instruction) {
     }
 
     if (instruction.operator == OP_END) {
-        fprintf(stdout, "Brainfuck exited normally.\n");
+        fprintf(stdout, "\n\x1B[32mNote\x1B[0m: Brainfuck exited normally.\n");
         runtime->running = false;
 
         return true;
